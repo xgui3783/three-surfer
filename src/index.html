@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    html,body, #container
+    {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+</body>
+<script src="bundle.js"></script>
+<script>
+  (async () => {
+
+    const el = document.getElementById('container')
+    const ts = new ThreeSurfer(el, {highlightHovered: true})
+    const m1 = await ts.loadMesh('http://localhost:10001/res/fsaverage/fsaverage6/lh.pial.gii')
+    const m2 = await ts.loadMesh('http://localhost:10001/res/fsaverage/fsaverage6/rh.pial.gii')
+    const c1 = await ts.loadColormap('http://localhost:10001/res/julichbrain_labels/lh.JulichBrain_MPMAtlas_l_N10_nlin2Stdicbm152asym2009c_publicDOI_83fb39b2811305777db0eb80a0fc8b53.BV_MNI152_orig_to_fsaverage6.gii')
+    const c2 = await ts.loadColormap('http://localhost:10001/res/julichbrain_labels/rh.JulichBrain_MPMAtlas_r_N10_nlin2Stdicbm152asym2009c_publicDOI_172e93a5bec140c111ac862268f0d046.BV_MNI152_orig_to_fsaverage6.gii')
+    const colorIdx1 = c1[0].getData()
+    const colorIdx2 = c2[0].getData()
+    ts.applyColorMap(m1, colorIdx1)
+    ts.applyColorMap(m2, colorIdx2)
+    
+    el.addEventListener(ThreeSurfer.CUSTOM_EVENTNAME, (ev) => {
+      console.log('ev listener', ev.detail.colormap?.verticesValue)
+    })
+  })()
+</script>
+</html>

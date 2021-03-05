@@ -1,0 +1,34 @@
+{
+  "name": "three-surfer",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "NDOE_ENV=production rollup -c"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^17.1.0",
+    "@rollup/plugin-typescript": "^8.2.0",
+    "comlink": "^4.3.0",
+    "gifti-reader-js": "0.4.4",
+    "npm": "^7.6.0",
+    "rollup": "^2.40.0",
+    "rollup-plugin-serve": "^1.1.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "three": "^0.126.0",
+    "tslib": "^2.1.0",
+    "typescript": "^4.2.2"
+  },
+  "homepage": "https://github.com/xgui3783/three-surfer.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xgui3783/three-surfer.git"
+  },
+  "files": [
+    "dist/bundle.js"
+  ]
+}
