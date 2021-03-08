@@ -6,8 +6,30 @@ import IDisposable from './Disposable'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import IAnimatable from './Animatable'
 import Ambience from './Ambience'
-import { ATTR_INTENSITY, getVertexFrag, EnumColorMapName, IPatchShader } from './colormap'
+import { ATTR_IDX, ATTR_INTENSITY, getVertexFrag, EnumColorMapName, IPatchShader, getVertexFragCustom } from './colormap'
 import { IThreeSurferMouseEvent } from './events'
+
+function cvtNumToLetters(n){
+  let v = n
+  let out = []
+  const startCap = 65
+  const startLow = 97
+  while(v>0) {
+    const rem = v % 52
+    out.push(
+      rem >= 26
+        ? String.fromCharCode(startCap+rem-26)
+        : String.fromCharCode(startLow+rem)
+    )
+    v = (v - rem) / 52
+  }
+  return out.join('')
+}
+
+function getUuid(){
+  let v = crypto.getRandomValues(new Uint32Array(1))[0]
+  return cvtNumToLetters(v)
+}
 
 let LINE_ZFIGHTING_MULTIPLE: number = 0.005
 
@@ -21,10 +43,17 @@ interface IThreeSurferOptions {
   highlightHovered: boolean
 }
 
+interface IThreeColorMapOptions {
+  usePreset?: EnumColorMapName
+  custom?: Map<number, [number, number, number]>
+}
+
 
 export default class ThreeSurfer implements IDisposable, IAnimatable{
   static CUSTOM_EVENTNAME = 'threeSurferCustomEvent'
   static GiftiMeshLoader = GiftiMeshLoader
+  static COLOR_MAPS = EnumColorMapName
+
   static GiftiBase = {
     parseGiiColorIdx, parseGii, parseGiiMesh,
   }
@@ -89,11 +118,17 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     }
     
     const { mesh, shaders } = colormap
-    const { updateVertex, updateFrag } = shaders || {}
+    const { updateVertex, updateFrag, getUniforms } = shaders || {}
     
     const material = this.defaultMaterial.clone()
     
     material.onBeforeCompile = function(shader) {
+      if (getUniforms) {
+        shader.uniforms = {
+          ...shader.uniforms,
+          ...getUniforms()
+        }
+      }
       shader.vertexShader = updateVertex(shader.vertexShader)
       shader.fragmentShader = updateFrag(shader.fragmentShader)
       material.userData.shader = shader
@@ -108,7 +143,7 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     })
   }
 
-  applyColorMap(geometry: THREE.Geometry, idxMap?: number[]) {
+  applyColorMap(geometry: THREE.Geometry, idxMap?: number[], colormapOption?: IThreeColorMapOptions) {
     if (!geometry) {
       throw new Error(`geometry needs to be defined to apply color map`)
     }
@@ -118,21 +153,36 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     if (!idxMap) {
       this.customColormap.set(geometry, { ...rest })
     } else {
-      const { min, max } = idxMap.reduce<{ min: number, max: number}>((acc, curr) => {
-        const returnObj = { ...acc }
-        if (acc.min === null || curr < acc.min) returnObj.min = curr
-        if (acc.max === null || curr > acc.max) returnObj.max = curr
-        return returnObj
-      }, { min: null, max: null })
-      const shaders = getVertexFrag({
-        type: EnumColorMapName.MAGMA,
-      })
-      geometry.setAttribute(ATTR_INTENSITY, new THREE.Float32BufferAttribute(idxMap.map(v => v / max), 1))
-      this.customColormap.set(geometry, {
-        ...rest,
-        shaders,
-        idxMap
-      })
+
+      const { custom, usePreset } = colormapOption || {}
+      if (custom) {
+        const shaders = getVertexFragCustom(custom)
+        geometry.setAttribute(ATTR_IDX, new THREE.Float32BufferAttribute(idxMap, 1))
+        this.customColormap.set(geometry, {
+          ...rest,
+          shaders,
+          idxMap
+        })
+      } else {
+        const { min, max } = idxMap.reduce<{ min: number, max: number}>((acc, curr) => {
+          const returnObj = { ...acc }
+          if (acc.min === null || curr < acc.min) returnObj.min = curr
+          if (acc.max === null || curr > acc.max) returnObj.max = curr
+          return returnObj
+        }, { min: null, max: null })
+        
+        const uuid = getUuid()
+        const shaders = getVertexFrag({
+          type: usePreset || EnumColorMapName.MAGMA,
+          id: uuid
+        })
+        geometry.setAttribute(`${ATTR_INTENSITY}`, new THREE.Float32BufferAttribute(idxMap.map(v => v / max), 1))
+        this.customColormap.set(geometry, {
+          ...rest,
+          shaders,
+          idxMap
+        })
+      }
     }
     
     this.redraw(geometry)
