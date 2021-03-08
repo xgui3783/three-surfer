@@ -17,21 +17,27 @@ interface IUrlLoaderDone {
 
 type TUrlRes = string
 
+interface IUrlLoaderConfig {
+  useCache: boolean
+}
+
 export default class UrlLoader extends LoaderBase<IUrlLoadEvents> implements ILoader<TUrlRes>{
 
   private sessionKey = `${RESLOADER_NAMESPACE}:urlLoader`
 
-  constructor(){
+  constructor(private config: IUrlLoaderConfig){
     super()
   }
   
   async load(resUrl: TUrlRes) {
     const cacheKey = `${this.sessionKey}:${resUrl}`
-    const cachedItem = getItem(cacheKey)
-    if (cachedItem) return cachedItem
+    if (this.config.useCache) {
+      const cachedItem = getItem(cacheKey)
+      if (cachedItem) return cachedItem
+    }
     const res = await fetch(resUrl)
     const text = await res.text()
-    setItem(cacheKey, text)
+    if (this.config.useCache) setItem(cacheKey, text)
     return text
   }
 }

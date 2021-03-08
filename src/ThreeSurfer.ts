@@ -41,6 +41,7 @@ type TWeakmap = {
 
 interface IThreeSurferOptions {
   highlightHovered: boolean
+  useCache?: boolean
 }
 
 interface IThreeColorMapOptions {
@@ -87,7 +88,7 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
   private mouse: THREE.Vector2
   async loadMesh(url: string) {
     // check input type, use url loader or file loader
-    const l = new UrlLoader()
+    const l = new UrlLoader({ useCache: this.options?.useCache })
     const str = await l.load(url)
 
     // check mesh type?
@@ -190,7 +191,7 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
 
   async loadColormap(url: string) {
     
-    const l = new UrlLoader()
+    const l = new UrlLoader({ useCache: this.options?.useCache })
     const str = await l.load(url)
     const arr = parseGiiColorIdx(str)
     
