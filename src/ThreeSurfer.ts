@@ -311,12 +311,21 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
       () => this.el.removeEventListener('mousemove', mousemoveListener)
     )
 
+    // on window resize
+    const resizeListener = (this.setSize).bind(this)
+    window.addEventListener('resize', resizeListener)
+    this.disposeCb.push(
+      () => window.removeEventListener('resize', resizeListener)
+    )
+
     this.control = new OrbitControls(this.camera, this.renderer.domElement)
     this.el.appendChild(this.renderer.domElement)
   }
 
   setSize() {
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.camera.aspect = window.innerWidth / window.innerHeight
+    this.camera.updateProjectionMatrix()
+    this.renderer.setSize( window.innerWidth, window.innerHeight )
   }
 
   private disposeCb: (() => void)[] = []
