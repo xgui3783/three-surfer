@@ -39,8 +39,14 @@ type TWeakmap = {
   idxMap?: number[]
 }
 
+enum EnumMaterial {
+  LAMBERT='lambert',
+  PHONG='phong',
+}
+
 interface IThreeSurferOptions {
   highlightHovered: boolean
+  useMaterial?: EnumMaterial
   useCache?: boolean
 }
 
@@ -54,21 +60,35 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
   static CUSTOM_EVENTNAME = 'threeSurferCustomEvent'
   static GiftiMeshLoader = GiftiMeshLoader
   static COLOR_MAPS = EnumColorMapName
+  static MATERIAL = EnumMaterial
 
   static GiftiBase = {
     parseGiiColorIdx, parseGii, parseGiiMesh,
   }
 
   private options: IThreeSurferOptions = {
-    highlightHovered: false
+    highlightHovered: false,
+    useMaterial: EnumMaterial.LAMBERT
   }
 
   private highlightLine: THREE.Line
 
-  private defaultMaterial = new THREE.MeshPhongMaterial({
+  private lambertMaterial = new THREE.MeshLambertMaterial({
     color: 0xffffff,
     blending: THREE.NormalBlending,
   })
+
+  private phongMaterial = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    blending: THREE.NormalBlending,
+  })
+
+  get defaultMaterial() {
+    if (this.options.useMaterial === EnumMaterial.PHONG) return this.phongMaterial
+    if (this.options.useMaterial === EnumMaterial.LAMBERT) return this.lambertMaterial
+    // fallback material
+    return this.lambertMaterial
+  }
 
   private control: OrbitControls
 
