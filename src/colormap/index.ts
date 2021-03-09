@@ -2,7 +2,7 @@ import { IColormapConfig } from './base'
 import { EnumColorMapName, mapKeyColorMap } from './util'
 import * as THREE from 'three/build/three.module'
 const ATTR_IDX = `vertexIdx`
-const V_ATTR_IDX = `vVertexIdx`
+const V_CUSTOM_COLOR = `vCustomColor`
 const ATTR_INTENSITY = `intensity`
 const VARY_FLOAT_INTENSITY = `vInts`
 const UNIFORM_COLORMAP = `uColorMap`
@@ -35,29 +35,26 @@ function getVertexFragCustom(colorMap: Map<number, [number, number, number]>):IP
     return vertexShader
       .replace('#include', s => [
         `attribute float ${ATTR_IDX};`,
-        `varying float ${V_ATTR_IDX};`,
+        `uniform vec3 ${UNIFORM_COLORMAP}[${max}];`,
+        `varying vec3 ${V_CUSTOM_COLOR};`,
         `${s}`,
       ].join('\n'))
       .replace(/void\ main.+$/m, s => [
         s,
-        `${V_ATTR_IDX} = ${ATTR_IDX};`
+        `${V_CUSTOM_COLOR} = ${UNIFORM_COLORMAP}[int(${ATTR_IDX})];`
       ].join('\n'))
   }
 
   const updateFrag = (fragShader: string) => {
     return fragShader
       .replace('#include', s => [
-        `uniform vec3 ${UNIFORM_COLORMAP}[${max}];`,
-        `varying float ${V_ATTR_IDX};`,
+        `varying vec3 ${V_CUSTOM_COLOR};`,
         s,
       ].join('\n'))
       .replace(/gl_FragColor.+$/m, s => {
         return [
           s,
-          `if ( mod(${V_ATTR_IDX}, 1.0) < 0.1 ) {`,
-            `int accessor=int(${V_ATTR_IDX});`,
-            `gl_FragColor *=  vec4(${UNIFORM_COLORMAP}[accessor], 1.);`,
-          `}`,
+          `gl_FragColor *=  vec4(${V_CUSTOM_COLOR}, 1.);`,
         ].join('\n')
       })
   }
