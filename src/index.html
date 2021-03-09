@@ -47,7 +47,11 @@
       )
     }
 
-    ts.applyColorMap(m1, colorIdx1, { custom: lhCM })
+    ts.applyColorMap(
+      m1,
+      colorIdx1,
+      { custom: lhCM }
+    )
 
     const rightarr = await (async () => {
       const res = await fetch(`http://localhost:10001/rightarr.json`)
@@ -66,7 +70,11 @@
       )
     }
 
-    ts.applyColorMap(m2, colorIdx2, { custom: rhCM })
+    ts.applyColorMap(
+      m2,
+      colorIdx2,
+      { custom: rhCM }
+    )
     
     el.addEventListener(ThreeSurfer.CUSTOM_EVENTNAME, (ev) => {
       const detail = ev.detail

@@ -4,7 +4,7 @@ import * as THREE from 'three/build/three.module'
 const ATTR_IDX = `vertexIdx`
 const V_CUSTOM_COLOR = `vCustomColor`
 const ATTR_INTENSITY = `intensity`
-const VARY_FLOAT_INTENSITY = `vInts`
+const V_CM_COLOR = `vCMColor`
 const UNIFORM_COLORMAP = `uColorMap`
 
 export interface IPatchShader {
@@ -73,9 +73,6 @@ function getVertexFragCustom(colorMap: Map<number, [number, number, number]>):IP
 
 function getVertexFrag(option: IColormapConfig & { type: EnumColorMapName, id: string } ): IPatchShader {
   const { type, id, ...rest } = option
-  
-  const attrInt = `${ATTR_INTENSITY}`
-  const varInt = `${VARY_FLOAT_INTENSITY}`
 
   const colorMap = mapKeyColorMap.get(type)
   if (!colorMap) {
@@ -100,32 +97,35 @@ function getVertexFrag(option: IColormapConfig & { type: EnumColorMapName, id: s
   const updateVertex = (vertexShader: string) => {
     return vertexShader
       .replace('#include', s => [
-        `attribute float ${attrInt};`,
-        `varying float ${varInt};`,
+        `attribute float ${ATTR_INTENSITY};`,
+        `varying vec3 ${V_CM_COLOR};`,
         `${s}`,
       ].join('\n'))
       .replace(/void\ main.+$/m, s => [
+        premain,
         `${s}`,
-        `${varInt} = ${attrInt};`,
+        `vec3 rgb;`,
+        `float x = ${ATTR_INTENSITY};`,
+        // line below somehow doesn't work
+        // `float x = (raw_x - ${min.toFixed(10)}) / (${(max - min).toFixed(8)}) ${ brightness > 0 ? '+' : '-' } ${Math.abs(brightness).toFixed(10)};`,
+        // `vec3 rgb_contrast=${contrast === 1 ? 'rgb' : 'rgb*exp(' + contrast.toFixed(10) + ')'};`,
+        main,
+        `${V_CM_COLOR} = rgb;`,
       ].join('\n'))
   }
 
   const updateFrag = (fragShader: string) => {
     return fragShader
-      .replace('#include', s => 
-        `varying float ${varInt};\n${s}`)
+      .replace('#include', s => [
+        `varying vec3 ${V_CM_COLOR};`,
+        s,
+      ].join('\n'))
       .replace('void main()', s => 
         `${premain}\n${s}`)
       .replace(/gl_FragColor.+$/m, s => {
         return [
           s,
-          `vec3 rgb;`,
-          `float x = ${varInt} * ${multiplier.toFixed(8)};`,
-          // line below somehow doesn't work
-          // `float x = (raw_x - ${min.toFixed(10)}) / (${(max - min).toFixed(8)}) ${ brightness > 0 ? '+' : '-' } ${Math.abs(brightness).toFixed(10)};`,
-          main,
-          // `vec3 rgb_contrast=${contrast === 1 ? 'rgb' : 'rgb*exp(' + contrast.toFixed(10) + ')'};`,
-          `gl_FragColor *=  vec4(rgb, 1.);`,
+          `gl_FragColor *=  vec4(${V_CM_COLOR}, 1.);`,
         ].join('\n')
       })
   }

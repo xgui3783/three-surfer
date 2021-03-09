@@ -72,6 +72,7 @@ Three wrapper for freesurfer gifti files
 ## Known bug
 
 - `applyColorMap` will apply vertex indices correctly, but will overwrite colormaps
+- brightness and contrast in shader does not yet work
 
 ## License
 
