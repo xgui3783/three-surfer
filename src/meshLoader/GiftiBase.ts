@@ -31,3 +31,11 @@ export function parseGiiColorIdx(giiString: string) {
     return item?.attributes?.Intent === 'NIFTI_INTENT_SHAPE'
   })
 }
+
+export interface ITypedArray {
+  UINT32: Uint32Array
+}
+
+export function castF32UInt16(data: Float32Array){
+  return new Uint16Array(data.buffer)
+}

@@ -1,5 +1,5 @@
 import GiftiMeshLoader from './meshLoader/GiftiLoader'
-import { parseGiiColorIdx, parseGii, parseGiiMesh } from './meshLoader/GiftiBase'
+import { parseGiiColorIdx, parseGii, parseGiiMesh, castF32UInt16 } from './meshLoader/GiftiBase'
 import UrlLoader from './resLoader/UrlLoader'
 import * as THREE from 'three/build/three.module'
 import IDisposable from './Disposable'
@@ -63,7 +63,7 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
   static MATERIAL = EnumMaterial
 
   static GiftiBase = {
-    parseGiiColorIdx, parseGii, parseGiiMesh,
+    parseGiiColorIdx, parseGii, parseGiiMesh, castF32UInt16
   }
 
   private options: IThreeSurferOptions = {
