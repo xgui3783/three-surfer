@@ -63,6 +63,7 @@ interface IThreeColorMapOptions {
 
 
 export default class ThreeSurfer implements IDisposable, IAnimatable{
+  static THREE = THREE
   static CUSTOM_EVENTNAME = 'threeSurferCustomEvent'
   static CUSTOM_EVENTNAME_UPDATED = 'threeSurferCustomEvent2'
   static GiftiMeshLoader = GiftiMeshLoader
