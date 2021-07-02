@@ -297,7 +297,8 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
       let firstIntersect = intersects &&
         intersects.filter(intersect => 
           intersect.object !== this.gridHelper &&
-          intersect.object !== this.highlightLine
+          intersect.object !== this.highlightLine &&
+          intersect.object.visible
         )[0]
       
       // dispatch event
