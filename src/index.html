@@ -23,12 +23,21 @@
 
     const el = document.getElementById('container')
     const ts = new ThreeSurfer(el, {highlightHovered: true})
-    const m1 = await ts.loadMesh('http://localhost:10001/res/fsaverage/fsaverage6/lh.pial.gii')
-    const m2 = await ts.loadMesh('http://localhost:10001/res/fsaverage/fsaverage6/rh.pial.gii')
-    const c1 = await ts.loadColormap('http://localhost:10001/res/julichbrain_labels/lh.JulichBrain_MPMAtlas_l_N10_nlin2Stdicbm152asym2009c_publicDOI_83fb39b2811305777db0eb80a0fc8b53.BV_MNI152_orig_to_fsaverage6.gii')
-    const c2 = await ts.loadColormap('http://localhost:10001/res/julichbrain_labels/rh.JulichBrain_MPMAtlas_r_N10_nlin2Stdicbm152asym2009c_publicDOI_172e93a5bec140c111ac862268f0d046.BV_MNI152_orig_to_fsaverage6.gii')
-    const colorIdx1 = c1[0].getData()
-    const colorIdx2 = c2[0].getData()
+    console.log('huh?')
+    const m1 = await ts.loadMesh('https://neuroglancer.humanbrainproject.eu/precomputed/freesurfer/20210305/fsaverage/fsaverage/lh.white.gii')
+    const m2 = await ts.loadMesh('https://neuroglancer.humanbrainproject.eu/precomputed/freesurfer/20210305/fsaverage/fsaverage/rh.white.gii')
+    const c1 = await ts.loadColormap('https://neuroglancer.humanbrainproject.eu/precomputed/data-repo-ng-bot/20210625_julichbrain_v290_freesurfer_update/gii/GapMapPublicMPMAtlas_l_N10_nlin2StdICBM152asym2009c_29_icbm152_fsaverage_cleaned.gii')
+    const c2 = await ts.loadColormap('https://neuroglancer.humanbrainproject.eu/precomputed/data-repo-ng-bot/20210625_julichbrain_v290_freesurfer_update/gii/GapMapPublicMPMAtlas_r_N10_nlin2StdICBM152asym2009c_29_icbm152_fsaverage_cleaned.gii')
+
+    let colorIdx1 = c1[0].getData()
+    if (c1[0].attributes.DataType === 'NIFTI_TYPE_INT16') {
+      colorIdx1 = ThreeSurfer.GiftiBase.castF32UInt16(colorIdx1)
+    }
+
+    let colorIdx2 = c2[0].getData()
+    if (c2[0].attributes.DataType === 'NIFTI_TYPE_INT16') {
+      colorIdx2 = ThreeSurfer.GiftiBase.castF32UInt16(colorIdx2)
+    }
 
     const leftarr = await (async () => {
       const res = await fetch(`http://localhost:10001/leftarr.json`)
@@ -76,11 +85,17 @@
       { custom: rhCM }
     )
     
-    el.addEventListener(ThreeSurfer.CUSTOM_EVENTNAME, (ev) => {
+    // deprecated
+    // el.addEventListener(ThreeSurfer.CUSTOM_EVENTNAME, (ev) => {
+    //   const detail = ev.detail
+    //   if (detail.mesh) {
+    //     // console.log('ev listener', ev.detail.colormap?.verticesValue)
+    //   }
+    // })
+
+    el.addEventListener(ThreeSurfer.CUSTOM_EVENTNAME_UPDATED, (ev) => {
       const detail = ev.detail
-      if (detail.mesh) {
-        // console.log('ev listener', ev.detail.colormap?.verticesValue)
-      }
+      console.log(ev.detail)
     })
     window.obj = {
       ts,

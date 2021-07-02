@@ -7,7 +7,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import IAnimatable from './Animatable'
 import Ambience from './Ambience'
 import { ATTR_IDX, ATTR_INTENSITY, getVertexFrag, EnumColorMapName, IPatchShader, getVertexFragCustom } from './colormap'
-import { IThreeSurferMouseEvent } from './events'
+import { IThreeSurferEventObj, IThreeSurferMouseEvent, TThreeSurferCustomEvent } from './events'
+
+type TVec3 = {
+  x: number
+  y: number
+  z: number
+}
 
 function cvtNumToLetters(n){
   let v = n
@@ -58,6 +64,7 @@ interface IThreeColorMapOptions {
 
 export default class ThreeSurfer implements IDisposable, IAnimatable{
   static CUSTOM_EVENTNAME = 'threeSurferCustomEvent'
+  static CUSTOM_EVENTNAME_UPDATED = 'threeSurferCustomEvent2'
   static GiftiMeshLoader = GiftiMeshLoader
   static COLOR_MAPS = EnumColorMapName
   static MATERIAL = EnumMaterial
@@ -258,8 +265,37 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     }
   }
 
+  private controlZoom = null
+  private controlPosition = null
+  private threshold = 1e-3
+  private roughlyEquals(v1: TVec3, v2: TVec3) {
+    if (v1 === v2) return true
+    if (!v1 || !v2) return false
+    const { x: x1, y: y1, z: z1 } = v1
+    const { x: x2, y: y2, z: z2 } = v2
+    return Math.abs(x2 - x1) < this.threshold
+      && Math.abs(y2 - y1) < this.threshold
+      && Math.abs(z2 - z1) < this.threshold
+  }
+
   animate() {
     this.control.update()
+    if (
+      this.controlZoom !== this.camera.zoom
+      || (!this.controlPosition)
+      || (this.camera?.position && !this.roughlyEquals(this.camera.position, this.controlPosition))
+    ) {
+      this.controlZoom = this.camera.zoom
+      this.controlPosition = this.camera.position.clone()
+      const { x, y, z } = this.controlPosition
+      this.dispatchEvent({
+        type: 'camera',
+        data: {
+          position: { x, y, z },
+          zoom: this.controlZoom
+        }
+      })
+    }
     this.renderer.render(this.scene, this.camera)
     for (const h of this.animateHook) {
       h()
@@ -329,9 +365,38 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
           mouse: ev
         }
       }
+      /**
+       * TODO deprecate
+       */
       this.el.dispatchEvent(new CustomEvent(ThreeSurfer.CUSTOM_EVENTNAME, {
-        detail
+        detail: {
+          _mouse: detail.mouse,
+          _mesh: detail.mesh,
+          _colormap: detail.colormap,
+          warn() {
+            console.warn(`custom event ${ThreeSurfer.CUSTOM_EVENTNAME} is becoming deprecated. Please use ${ThreeSurfer.CUSTOM_EVENTNAME_UPDATED} instead!`)
+          },
+          get mouse() {
+            this.warn()
+            return this._mouse
+          },
+          get mesh() {
+            this.warn()
+            return this._mesh
+          },
+          get colormap() {
+            this.warn()
+            return this._colormap
+          },
+        }
       }))
+      /**
+       * use this instead
+       */
+      this.dispatchEvent({
+        type: 'mouseover',
+        data: detail
+      })
 
       // setup highlight, if set
       if (this.options.highlightHovered) {
@@ -349,18 +414,6 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
 					linePosition.copyAt( 1, meshPosition, bufferGeomVertexIndices[1] )
 					linePosition.copyAt( 2, meshPosition, bufferGeomVertexIndices[2] )
 					linePosition.copyAt( 3, meshPosition, bufferGeomVertexIndices[0] )
-          
-          // debugger
-          // console.log([
-          //   face.a,
-          //   face.b,
-          //   face.c,
-          //   linePosition.array.slice(0,3),
-          //   linePosition.array.slice(3,6),
-          //   linePosition.array.slice(6,9),
-          //   linePosition.array.slice(9),
-          // ].join('\n')
-          // )
           
           if (LINE_ZFIGHTING_MULTIPLE !== 0) {
             const face = firstIntersect.face
@@ -408,5 +461,11 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     }
     while (this.disposeCb.length > 0) this.disposeCb.pop()()
     this.el.removeChild(this.renderer.domElement)
+  }
+
+  dispatchEvent<T extends keyof IThreeSurferEventObj>(ev: TThreeSurferCustomEvent<T>){
+    this.el.dispatchEvent(new CustomEvent(ThreeSurfer.CUSTOM_EVENTNAME_UPDATED, {
+      detail: ev
+    }))
   }
 }

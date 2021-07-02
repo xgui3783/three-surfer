@@ -12,13 +12,21 @@ export interface IThreeSurferMouseEvent {
   } | null
 }
 
-export interface IThreeSurferEventObj {
-  mouseover: IThreeSurferMouseEvent
+export interface IThreeSurferCameraEvent {
+  position: {
+    x: number
+    y: number
+    z: number
+  }
+  zoom: number
 }
 
-type TThreeSurferEventTypes = keyof IThreeSurferEventObj
+export interface IThreeSurferEventObj {
+  mouseover: IThreeSurferMouseEvent
+  camera: IThreeSurferCameraEvent
+}
 
-export type TThreeSurferCustomEvent<K extends TThreeSurferEventTypes> = {
+export type TThreeSurferCustomEvent<K extends keyof IThreeSurferEventObj> = {
   type: K
   data: IThreeSurferEventObj[K]
 }
