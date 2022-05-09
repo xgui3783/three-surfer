@@ -205,7 +205,10 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
           type: usePreset || EnumColorMapName.MAGMA,
           id: uuid
         })
-        geometry.setAttribute(`${ATTR_INTENSITY}`, new THREE.Float32BufferAttribute(idxMap.map(v => v / max), 1))
+
+        const attrInput = Float32Array.from(idxMap).map(v => v/max)
+        const attr = new THREE.Float32BufferAttribute(attrInput, 1)
+        geometry.setAttribute(`${ATTR_INTENSITY}`, attr)
         this.customColormap.set(geometry, {
           ...rest,
           shaders,
@@ -280,6 +283,7 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
   }
 
   animate() {
+    if (this.disposed) return
     this.control.update()
     if (
       this.controlZoom !== this.camera.zoom
@@ -455,8 +459,10 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
   }
 
   private disposeCb: (() => void)[] = []
+  private disposed = false
 
   dispose(){
+    this.disposed = true
     if (this.aniRef) {
       cancelAnimationFrame(this.aniRef)
     }

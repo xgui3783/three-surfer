@@ -22,7 +22,7 @@ function getVertexFragCustom(colorMap: Map<number, [number, number, number]>):IP
     return returnObj
   }, { min: null, max: null })
 
-  const uniformColorMap = new Array(max).fill(
+  const uniformColorMap = new Array(max + 1).fill(
     new THREE.Vector3(1, 1, 1)
   )
 
@@ -35,7 +35,7 @@ function getVertexFragCustom(colorMap: Map<number, [number, number, number]>):IP
     return vertexShader
       .replace('#include', s => [
         `attribute float ${ATTR_IDX};`,
-        `uniform vec3 ${UNIFORM_COLORMAP}[${max}];`,
+        `uniform vec3 ${UNIFORM_COLORMAP}[${max + 1}];`,
         `varying vec3 ${V_CUSTOM_COLOR};`,
         `${s}`,
       ].join('\n'))

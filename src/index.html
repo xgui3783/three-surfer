@@ -26,8 +26,8 @@
     console.log('huh?')
     const m1 = await ts.loadMesh('https://neuroglancer.humanbrainproject.eu/precomputed/freesurfer/20210305/fsaverage/fsaverage/lh.white.gii')
     const m2 = await ts.loadMesh('https://neuroglancer.humanbrainproject.eu/precomputed/freesurfer/20210305/fsaverage/fsaverage/rh.white.gii')
-    const c1 = await ts.loadColormap('https://neuroglancer.humanbrainproject.eu/precomputed/data-repo-ng-bot/20210625_julichbrain_v290_freesurfer_update/gii/GapMapPublicMPMAtlas_l_N10_nlin2StdICBM152asym2009c_29_icbm152_fsaverage_cleaned.gii')
-    const c2 = await ts.loadColormap('https://neuroglancer.humanbrainproject.eu/precomputed/data-repo-ng-bot/20210625_julichbrain_v290_freesurfer_update/gii/GapMapPublicMPMAtlas_r_N10_nlin2StdICBM152asym2009c_29_icbm152_fsaverage_cleaned.gii')
+    const c1 = await ts.loadColormap('https://neuroglancer.humanbrainproject.eu/precomputed/data-repo-ng-bot/20210628_julichBrainV290_freesurfer_update2/gii/2021_06_28/GapMapPublicMPMAtlas_l_N10_nlin2StdColin27_29_fsaverage_cleaned.gii')
+    const c2 = await ts.loadColormap('https://neuroglancer.humanbrainproject.eu/precomputed/data-repo-ng-bot/20210628_julichBrainV290_freesurfer_update2/gii/2021_06_28/GapMapPublicMPMAtlas_r_N10_nlin2StdColin27_29_fsaverage_cleaned.gii')
 
     let colorIdx1 = c1[0].getData()
     if (c1[0].attributes.DataType === 'NIFTI_TYPE_INT16') {
