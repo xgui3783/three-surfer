@@ -1,6 +1,6 @@
 import GiftiMeshLoader from './meshLoader/GiftiLoader'
 import { parseGiiColorIdx, parseGii, parseGiiMesh, castF32UInt16 } from './meshLoader/GiftiBase'
-import UrlLoader from './resLoader/UrlLoader'
+import { fetchRaw, fetchStr } from './resLoader/UrlLoader'
 import * as THREE from 'three/build/three.module'
 import IDisposable from './Disposable'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -8,6 +8,7 @@ import IAnimatable from './Animatable'
 import Ambience from './Ambience'
 import { ATTR_IDX, ATTR_INTENSITY, getVertexFrag, EnumColorMapName, IPatchShader, getVertexFragCustom } from './colormap'
 import { IThreeSurferEventObj, IThreeSurferMouseEvent, TThreeSurferCustomEvent } from './events'
+import { parseAnnotColorIdx } from './meshLoader/Annot'
 
 type TVec3 = {
   x: number
@@ -17,7 +18,7 @@ type TVec3 = {
 
 function cvtNumToLetters(n){
   let v = n
-  let out = []
+  let out: string[] = []
   const startCap = 65
   const startLow = 97
   while(v>0) {
@@ -115,9 +116,8 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
   async loadMesh(url: string) {
-    // check input type, use url loader or file loader
-    const l = new UrlLoader({ useCache: this.options?.useCache })
-    const str = await l.load(url)
+    
+    const str = await fetchStr(url)
 
     // check mesh type?
     const geom = await this.giftiLoader.load(str)
@@ -195,10 +195,10 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
       } else {
         const { min, max } = idxMap.reduce<{ min: number, max: number}>((acc, curr) => {
           const returnObj = { ...acc }
-          if (acc.min === null || curr < acc.min) returnObj.min = curr
-          if (acc.max === null || curr > acc.max) returnObj.max = curr
+          if (curr < acc.min) returnObj.min = curr
+          if (curr > acc.max) returnObj.max = curr
           return returnObj
-        }, { min: null, max: null })
+        }, { min: Infinity, max: -Infinity })
         
         const uuid = getUuid()
         const shaders = getVertexFrag({
@@ -220,10 +220,14 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     this.redraw(geometry)
   }
 
+  async loadVertexData(url: string) {
+    const ab = await fetchRaw(url)
+    return await parseAnnotColorIdx(ab)
+  }
+
   async loadColormap(url: string) {
     
-    const l = new UrlLoader({ useCache: this.options?.useCache })
-    const str = await l.load(url)
+    const str = await fetchStr(url)
     const arr = parseGiiColorIdx(str)
     
     return arr
@@ -269,7 +273,7 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     }
   }
 
-  private controlZoom = null
+  private controlZoom: number|null = null
   private controlPosition = null
   private threshold = 1e-3
   private roughlyEquals(v1: TVec3, v2: TVec3) {
@@ -466,7 +470,7 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
     if (this.aniRef) {
       cancelAnimationFrame(this.aniRef)
     }
-    while (this.disposeCb.length > 0) this.disposeCb.pop()()
+    while (this.disposeCb.length > 0) this.disposeCb.pop()!()
     this.el.removeChild(this.renderer.domElement)
   }
 

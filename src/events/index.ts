@@ -18,7 +18,7 @@ export interface IThreeSurferCameraEvent {
     y: number
     z: number
   }
-  zoom: number
+  zoom: number|null
 }
 
 export interface IThreeSurferEventObj {

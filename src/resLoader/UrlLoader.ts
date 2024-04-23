@@ -15,29 +15,18 @@ interface IUrlLoaderDone {
   data: string
 }
 
-type TUrlRes = string
-
-interface IUrlLoaderConfig {
-  useCache: boolean
+export async function fetchStr(url: string): Promise<string>{
+  const resp = await fetch(url)
+  if (!resp.ok) {
+    throw new Error(await resp.text() || resp.statusText || resp.status.toString())
+  }
+  return await resp.text()
 }
 
-export default class UrlLoader extends LoaderBase<IUrlLoadEvents> implements ILoader<TUrlRes>{
-
-  private sessionKey = `${RESLOADER_NAMESPACE}:urlLoader`
-
-  constructor(private config: IUrlLoaderConfig){
-    super()
+export async function fetchRaw(url: string): Promise<ArrayBuffer> {
+  const resp = await fetch(url)
+  if (!resp.ok) {
+    throw new Error(await resp.text() || resp.statusText || resp.status.toString())
   }
-  
-  async load(resUrl: TUrlRes) {
-    const cacheKey = `${this.sessionKey}:${resUrl}`
-    if (this.config.useCache) {
-      const cachedItem = getItem(cacheKey)
-      if (cachedItem) return cachedItem
-    }
-    const res = await fetch(resUrl)
-    const text = await res.text()
-    if (this.config.useCache) setItem(cacheKey, text)
-    return text
-  }
+  return await resp.arrayBuffer()
 }

@@ -86,12 +86,25 @@ export function parseGiiMesh(giiString: string) {
 
 export function parseGiiColorIdx(giiString: string) {
   const gii = parseGii(giiString)
-  if (!Array.isArray(gii?.dataArrays)) {
+  const da = gii?.dataArrays
+  if (!Array.isArray(da)) {
     throw new Error(`gii.dataArrays is not an array!`)
   }
-  return gii.dataArrays.filter(item => {
+  const intentShape = da.filter(item => {
     return item?.attributes?.Intent === 'NIFTI_INTENT_SHAPE'
   })
+  if (intentShape.length > 0) {
+    return intentShape
+  }
+  
+  const intentLabel = da.filter(item => {
+    return item?.attributes?.Intent === 'NIFTI_INTENT_LABEL'
+  })
+  if (intentLabel.length > 0) {
+    return intentLabel
+  }
+  throw new Error("Cannot decipher giicolor")
+
 }
 
 export interface ITypedArray {

@@ -13,22 +13,19 @@ export interface IPatchShader {
   getUniforms?: () => any
 }
 
+let GLOBAL_MAX = - Infinity
+
 function getVertexFragCustom(colorMap: Map<number, [number, number, number]>):IPatchShader {
   const keys = Array.from(colorMap.keys())
   const { min, max } = keys.reduce<{ min: number, max: number}>((acc, curr) => {
     const returnObj = { ...acc }
-    if (acc.min === null || curr < acc.min) returnObj.min = curr
-    if (acc.max === null || curr > acc.max) returnObj.max = curr
+    if (curr < acc.min) returnObj.min = curr
+    if (curr > acc.max) returnObj.max = curr
     return returnObj
-  }, { min: null, max: null })
+  }, { min: Infinity, max: -Infinity })
 
-  const uniformColorMap = new Array(max + 1).fill(
-    new THREE.Vector3(1, 1, 1)
-  )
-
-  for (const key of keys) {
-    const color = colorMap.get(key)
-    uniformColorMap[key] = new THREE.Vector3(...color)
+  if (GLOBAL_MAX < max) {
+    GLOBAL_MAX = max
   }
 
   const updateVertex = (vertexShader: string) => {
@@ -62,6 +59,15 @@ function getVertexFragCustom(colorMap: Map<number, [number, number, number]>):IP
     updateFrag,
     updateVertex,
     getUniforms: () => {
+      const uniformColorMap = new Array(GLOBAL_MAX + 1).fill(
+        new THREE.Vector3(1, 1, 1)
+      )
+
+      for (const key of keys) {
+        const color = colorMap.get(key)
+        uniformColorMap[key] = new THREE.Vector3(...color)
+      }
+
       return {
         [UNIFORM_COLORMAP]: {
           value: uniformColorMap

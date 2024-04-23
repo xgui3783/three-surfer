@@ -221,3 +221,15 @@ export const mapKeyColorMap = new Map<EnumColorMapName, IColorMap>([
     main: 'rgb=vec3(x, x, x);'
   } ]
 ])
+
+export type VertexColorMap = {
+  vertex: number[]
+  labels: {
+    index: number
+    name: string
+    color: number[]
+    vertices: number[]
+  }[]
+  readonly vertexLabels: Uint16Array
+  readonly colormap: Map<number, number[]>
+}
