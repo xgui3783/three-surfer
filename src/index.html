@@ -21,9 +21,17 @@
 <script>
   (async () => {
 
+    function randomRgb(){
+      return [
+        Math.random(),
+        Math.random(),
+        Math.random(),
+      ]
+    }
+
     const el = document.getElementById('container')
     const ts = new ThreeSurfer(el, {highlightHovered: true})
-    console.log('huh?')
+    
     const m1 = await ts.loadMesh('https://neuroglancer.humanbrainproject.eu/precomputed/freesurfer/20210305/fsaverage/fsaverage/lh.white.gii')
     const m2 = await ts.loadMesh('https://neuroglancer.humanbrainproject.eu/precomputed/freesurfer/20210305/fsaverage/fsaverage/rh.white.gii')
     const c1 = await ts.loadColormap('https://neuroglancer.humanbrainproject.eu/precomputed/data-repo-ng-bot/20210628_julichBrainV290_freesurfer_update2/gii/2021_06_28/GapMapPublicMPMAtlas_l_N10_nlin2StdColin27_29_fsaverage_cleaned.gii')
@@ -39,22 +47,13 @@
       colorIdx2 = ThreeSurfer.GiftiBase.castF32UInt16(colorIdx2)
     }
 
-    const leftarr = await (async () => {
-      const res = await fetch(`http://localhost:10001/leftarr.json`)
-      return res.json()
-    })()
-
     const lhCM = new Map()
-    // console.log(leftarr)
-    for (const entry of leftarr) {
-      const { name, grayvalue, iav } = entry
-      const { rgb } = iav || { rgb: [200, 200, 200] }
-      // filter out aux mesh
-      lhCM.set(
-        Number(grayvalue),
-        rgb.map(v => v/255)
-      )
-    }
+    colorIdx1.forEach(v => {
+      if (lhCM.has(v)) {
+        return
+      }
+      lhCM.set(v, randomRgb())
+    })
 
     ts.applyColorMap(
       m1,
@@ -62,23 +61,15 @@
       { custom: lhCM }
     )
 
-    const rightarr = await (async () => {
-      const res = await fetch(`http://localhost:10001/rightarr.json`)
-      return res.json()
-    })()
 
     const rhCM = new Map()
-    // console.log(rhColorMap)
-    for (const entry of rightarr) {
-      const { name, grayvalue, iav } = entry
-      const { rgb } = iav || { rgb: [200, 200, 200] }
-      // filter out aux mesh
-      rhCM.set(
-        Number(grayvalue),
-        rgb.map(v => v/255)
-      )
-    }
 
+    colorIdx2.forEach(v => {
+      if (rhCM.has(v)) {
+        return
+      }
+      rhCM.set(v, randomRgb())
+    })
     ts.applyColorMap(
       m2,
       colorIdx2,
@@ -95,7 +86,7 @@
 
     el.addEventListener(ThreeSurfer.CUSTOM_EVENTNAME_UPDATED, (ev) => {
       const detail = ev.detail
-      console.log(ev.detail)
+      // console.log(ev.detail)
     })
     window.obj = {
       ts,

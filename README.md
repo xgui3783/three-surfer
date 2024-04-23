@@ -2,6 +2,10 @@
 
 Three wrapper for freesurfer gifti files
 
+[codepen gii-label example](https://codepen.io/xgui3783/pen/XWQoGjV?editors=0010)
+
+[code pen .annot example](https://codepen.io/xgui3783/pen/RwOEdxb?editors=0010)
+
 ## Usage
 
 ```js
