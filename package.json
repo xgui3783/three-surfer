@@ -1,7 +1,7 @@
 {
   "name": "three-surfer",
-  "version": "0.0.16",
-  "description": "",
+  "version": "0.0.17",
+  "description": "ThreeJS wrapper for freesurfer gifti files",
   "main": "index.js",
   "scripts": {
     "dev": "rollup -c -w",

@@ -1,6 +1,6 @@
 # Three-Surfer
 
-Three wrapper for freesurfer gifti files
+ThreeJS wrapper for freesurfer gifti files
 
 [codepen gii-label example](https://codepen.io/xgui3783/pen/XWQoGjV?editors=0010)
 

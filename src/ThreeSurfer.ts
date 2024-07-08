@@ -400,14 +400,13 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
           mesh: {
             faceIndex,
             verticesIndicies,
-            vertexIndex: bufferGeomVertexIndices[bufferGeomVertexIndices],
+            vertexIndex: bufferGeomVertexIndices[idx],
             geometry: firstIntersect.object?.geometry,
           },
           mouse: ev,
         }
         if (this.customColormap) {
           const obj = this.customColormap.get(firstIntersect.object?.geometry)
-          console.log(obj.idxMap[verticesIndicies[idx]])
           if (!!(obj?.idxMap)) {
             detail.colormap = {
               verticesValue: (Array.from(bufferGeomVertexIndices) as number[]).map(idx => obj.idxMap[idx])
