@@ -351,17 +351,63 @@ export default class ThreeSurfer implements IDisposable, IAnimatable{
       if (firstIntersect) {
         const faceIndex = firstIntersect.faceIndex
         const bufferGeomVertexIndices = firstIntersect.object.geometry.index.array.slice(faceIndex * 3, (faceIndex +1) * 3)
+        const position = firstIntersect.object.geometry.attributes.position
+        
+        const pt0 = new THREE.Vector3(
+          position.getX(bufferGeomVertexIndices[0]),
+          position.getY(bufferGeomVertexIndices[0]),
+          position.getZ(bufferGeomVertexIndices[0]),
+        )
+        const pt1 = new THREE.Vector3(
+          position.getX(bufferGeomVertexIndices[1]),
+          position.getY(bufferGeomVertexIndices[1]),
+          position.getZ(bufferGeomVertexIndices[1]),
+        )
+        const pt2 = new THREE.Vector3(
+          position.getX(bufferGeomVertexIndices[2]),
+          position.getY(bufferGeomVertexIndices[2]),
+          position.getZ(bufferGeomVertexIndices[2]),
+        )
+        const v01 = new THREE.Vector3()
+        const v02 = new THREE.Vector3()
+        const v0q = new THREE.Vector3()
+
+        v01.subVectors(pt1, pt0)
+        v02.subVectors(pt2, pt0)
+        v0q.subVectors(firstIntersect.point, pt0)
+        
+        const dot00 = v01.dot( v01 )
+        const dot01 = v01.dot( v02 )
+        const dot02 = v01.dot( v0q )
+        const dot11 = v02.dot( v02 )
+        const dot12 = v02.dot( v0q )
+
+        const denom = dot00 * dot11 - dot01 * dot01
+        if (denom === 0) {
+          return
+        }
+        
+        const invDenom = 1 / denom
+        const u = ( dot11 * dot02 - dot01 * dot12 ) * invDenom
+        const v = ( dot00 * dot12 - dot01 * dot02 ) * invDenom
+
+        const arr = [1 - u - v, u, v]
+        const idx = arr.indexOf(Math.max(...arr))
+
+        const verticesIndicies = Array.from(bufferGeomVertexIndices) as number[]
         
         detail = {
           mesh: {
             faceIndex,
-            verticesIdicies: Array.from(bufferGeomVertexIndices) as number[],
-            geometry: firstIntersect.object?.geometry
+            verticesIndicies,
+            vertexIndex: bufferGeomVertexIndices[bufferGeomVertexIndices],
+            geometry: firstIntersect.object?.geometry,
           },
           mouse: ev,
         }
         if (this.customColormap) {
           const obj = this.customColormap.get(firstIntersect.object?.geometry)
+          console.log(obj.idxMap[verticesIndicies[idx]])
           if (!!(obj?.idxMap)) {
             detail.colormap = {
               verticesValue: (Array.from(bufferGeomVertexIndices) as number[]).map(idx => obj.idxMap[idx])

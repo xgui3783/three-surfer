@@ -5,7 +5,8 @@ export interface IThreeSurferMouseEvent {
   mesh: {
     geometry: THREE.Geometry
     faceIndex: number
-    verticesIdicies: number[]
+    vertexIndex: number
+    verticesIndicies: number[]
   } | null
   colormap?: {
     verticesValue: number[] 
