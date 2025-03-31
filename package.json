@@ -1,6 +1,6 @@
 {
   "name": "three-surfer",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "ThreeJS wrapper for freesurfer gifti files",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-typescript": "^8.2.0",
     "comlink": "^4.3.0",
